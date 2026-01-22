@@ -21,7 +21,18 @@ body {
 .header h1 {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 8px 0;
+    margin: 0;
+}
+
+.header .subtitle {
+    font-size: 11px;
+    color: #00d4aa;
+    font-weight: 400;
+}
+
+.url-hint {
+    font-size: 11px;
+    color: #666;
 }
 
 .section {
@@ -269,6 +280,16 @@ body {
 
 .button-group .sync-btn {
     flex: 1;
+}
+
+.sync-btn.full-width {
+    width: 100%;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+
+.sync-btn.full-width:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
 }
 
 /* Mode hint */

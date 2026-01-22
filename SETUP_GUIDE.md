@@ -1,103 +1,60 @@
-# 🎨 RedBus Figma Plugin - Setup Guide
+# 🚌 RedBus Figma Plugin - Setup Guide
 
-A simple guide to get the plugin working for your design team.
+Sync live bus data from RedBus directly into your Figma designs. **No server needed!**
 
 ---
 
-## 🚀 Quick Start (For Designers)
+## 🚀 Quick Start (2 Steps!)
 
-### Step 1: Start the Server
-**Double-click** `START_SERVER.command` in the project folder.
-
-Keep the terminal window open while using the plugin.
-
-### Step 2: Install the Figma Plugin (One-time)
+### Step 1: Install the Plugin
 1. Open Figma Desktop
 2. Go to **Menu → Plugins → Development → Import plugin from manifest**
 3. Select `figma-plugin/manifest.json`
 
-### Step 3: Use It!
-1. Right-click → **Plugins → Web Scraper Sync**
+### Step 2: Use It!
+1. Right-click → **Plugins → RedBus Data Sync**
 2. Paste any RedBus search URL
-3. Click **Fetch & Apply**
+3. Click **⚡ Fetch & Apply**
 
 **That's it!** 🎉
 
 ---
 
-## First-Time Setup (One Person Does This)
+## 🎨 Setting Up Your Figma Frames
 
-If you haven't cloned the repo yet:
+For the plugin to fill your designs with bus data, name your layers like this:
 
-```bash
-# Clone the repository
-git clone https://github.com/ishanjalan/redbus-figma-scraper.git
-cd redbus-figma-scraper
-
-# Install backend dependencies
-cd vercel-backend
-npm install
-```
-
-Then share the folder with your team (via Google Drive, Dropbox, etc.).
-
----
-
-## For Designers (Using the Plugin)
-
-### Installing the Plugin
-
-1. Open Figma Desktop
-2. Go to **Menu → Plugins → Development → Import plugin from manifest**
-3. Select the `figma-plugin/manifest.json` file
-4. Done! ✅
-
-### Using the Plugin
-
-#### Quick Start
-
-1. **Open the plugin:** Right-click → Plugins → Web Scraper Sync
-2. **Paste a RedBus URL** (e.g., search results page)
-3. **Choose a mode:**
-   - 🔌 **Internal API** - Best quality (when available)
-   - 📊 **DataLayer** - Good for bus listings
-   - 📝 **Selectors** - Custom scraping
-4. **Click "Fetch Data"** then **"Apply to Figma"**
-
-#### Setting Up Your Figma Frames
-
-For the plugin to fill your designs, name your layers like this:
-
-**Frame names:**
+### Frame Names (for each bus card)
 ```
 Card @[0]    ← First bus
-Card @[1]    ← Second bus
+Card @[1]    ← Second bus  
 Card @[2]    ← Third bus
 ...
 ```
 
-**Text layers inside each card:**
+### Text Layer Names (inside each card)
 ```
 @{operator}       ← Bus company name (e.g., "FRESHBUS")
-@{price}          ← Formatted price (e.g., "₹850")
+@{price}          ← Price (e.g., "₹850")
 @{busType}        ← Bus type (e.g., "A/C Sleeper (2+1)")
 @{rating}         ← Star rating (e.g., "4.5")
-@{departureTime}  ← Departure time (e.g., "22:30")
-@{arrivalTime}    ← Arrival time (e.g., "05:45")
+@{departureTime}  ← Departure (e.g., "22:30")
+@{arrivalTime}    ← Arrival (e.g., "05:45")
 @{duration}       ← Duration (e.g., "7h 15m")
-@{seatsAvailable} ← Available seats (e.g., "23")
+@{seatsAvailable} ← Seats left (e.g., "23")
 @{route}          ← Route name
-@{amenities}      ← Comma-separated amenities
+@{amenities}      ← Features (e.g., "WiFi, Charging")
 ```
 
-#### Example Setup
-
+### Example Structure
 ```
 ┌─ Frame: "Bus Card @[0]" ─────────────────┐
 │                                          │
 │   Text: "FRESHBUS"     ← name: @{operator}
 │   Text: "₹850"         ← name: @{price}
-│   Text: "A/C Sleeper"  ← name: @{busType}
+│   Text: "22:30"        ← name: @{departureTime}
+│   Text: "05:45"        ← name: @{arrivalTime}
+│   Text: "7h 15m"       ← name: @{duration}
 │   Text: "4.5 ★"        ← name: @{rating}
 │                                          │
 └──────────────────────────────────────────┘
@@ -107,26 +64,22 @@ Duplicate this card and change `@[0]` to `@[1]`, `@[2]`, etc.
 
 ---
 
-## Which Mode Should I Use?
+## 📋 Supported URLs
 
-| Mode | Speed | Data Available | Notes |
-|------|-------|----------------|-------|
-| ⚡ **Auto (Recommended)** | ~2 seconds | Everything | Direct API with fallback |
-| 🔄 XHR Intercept | ~15 seconds | Everything | Browser-based, reliable |
-| 📊 DataLayer | ~15 seconds | Limited | No duration/times |
-| 📝 Selectors | ~15 seconds | Custom | Manual, fragile |
+Any RedBus search results URL works:
 
-**Recommendation:** Use **Auto** mode (default) - it's 10x faster and has automatic fallback!
+```
+https://www.redbus.in/bus-tickets/bangalore-to-tirupathi?fromCityId=122&toCityId=71756&onward=23-Jan-2026
+https://www.redbus.in/bus-tickets/bangalore-to-chennai?fromCityId=122&toCityId=123&onward=24-Jan-2026
+https://www.redbus.in/bus-tickets/hyderabad-to-pune?fromCityId=124&toCityId=130&onward=25-Jan-2026
+```
 
 ---
 
-## Troubleshooting
+## ❓ Troubleshooting
 
-**"Network error: Failed to fetch":**
-→ Make sure you started the server first! Double-click `START_SERVER.command`
-
-**"API not configured" message:**
-→ Internal API isn't ready yet. Use DataLayer mode instead.
+**"Invalid RedBus URL" error:**
+→ Make sure the URL contains `fromCityId`, `toCityId`, and a date parameter (`onward` or `doj`)
 
 **Nothing happens when I click "Apply":**
 → Make sure your Figma layers are named correctly (`@[0]`, `@{operator}`, etc.)
@@ -134,11 +87,27 @@ Duplicate this card and change `@[0]` to `@[1]`, `@[2]`, etc.
 **Data doesn't match my frames:**
 → Check that frame indices match: `@[0]` gets the first result, `@[1]` gets second, etc.
 
-**Server window closed accidentally:**
-→ Just double-click `START_SERVER.command` again
+---
+
+## 🔧 First-Time Setup (For Developers)
+
+If you're setting this up for the first time:
+
+```bash
+# Clone the repository
+git clone https://github.com/ishanjalan/redbus-figma-scraper.git
+cd redbus-figma-scraper
+
+# Install plugin dependencies and build
+cd figma-plugin
+npm install
+npm run build
+```
+
+Then share the `figma-plugin` folder with your team.
 
 ---
 
-## Need Help?
+## 📞 Need Help?
 
-Contact the UX Tooling team or check the [API_SPECIFICATION.md](API_SPECIFICATION.md) for technical details.
+Contact the UX Tooling team or open an issue on GitHub.

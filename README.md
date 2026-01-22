@@ -1,100 +1,68 @@
-# 🌐 RedBus Figma Plugin - Web Scraper Sync
+# 🚌 RedBus Figma Plugin
 
-A Figma plugin that syncs live data from RedBus into your designs. Built for the RedBus UX team.
+A Figma plugin that syncs live bus data from RedBus directly into your designs. **No server required!**
 
 ## ✨ Features
 
-- **🔌 Internal API Mode** - Direct access to RedBus data (recommended when available)
-- **📊 DataLayer Mode** - Extract structured data from analytics
-- **📝 Selector Mode** - Custom CSS selector-based scraping
-- **🖼️ Image Support** - Automatically fetch and embed images
-- **📋 Batch Updates** - Fill multiple cards with different bus data
+- **Zero Setup** - Just install the plugin and go
+- **Direct API** - Fetches data directly from RedBus (~2 seconds)
+- **Complete Data** - Gets all fields including times, duration, prices, ratings
+- **Bulk Sync** - Fill multiple bus cards at once
 
 ## 🚀 Quick Start
 
-### For the Setup Person (One-Time)
+1. **Install:** Figma → Plugins → Development → Import from manifest → Select `figma-plugin/manifest.json`
+2. **Use:** Paste a RedBus search URL → Click "Fetch & Apply"
 
-1. **Deploy the scraper backend to Vercel** (see [vercel-backend/README.md](vercel-backend/README.md))
-2. **Update the plugin URL** in `figma-plugin/src/ui.tsx`
-3. **Build and share** with your team
+## 📖 Documentation
 
-### For Designers
+See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed instructions on:
+- Setting up your Figma frames
+- Naming conventions for auto-fill
+- Troubleshooting
 
-1. **Install the plugin** in Figma
-2. **Paste a RedBus URL**
-3. **Name your layers** using `@[0]`, `@{operator}`, etc.
-4. **Click Sync!**
-
-📖 **Full guide:** [SETUP_GUIDE.md](SETUP_GUIDE.md)
-
-## 📁 Project Structure
+## 🏗️ Project Structure
 
 ```
-├── figma-plugin/          # Figma plugin source
-│   ├── src/
-│   │   ├── ui.tsx         # Plugin UI (React)
+├── figma-plugin/          # The Figma plugin (all you need!)
+│   ├── manifest.json      # Plugin configuration
+│   ├── src/               # Source code
+│   │   ├── ui.tsx         # Plugin UI
 │   │   ├── code.ts        # Figma sandbox code
-│   │   └── services/      # API clients
-│   └── dist/              # Built plugin files
+│   │   └── services/      # API client
+│   └── dist/              # Built files
 │
-├── vercel-backend/        # Scraper backend
-│   ├── api/               # Serverless functions
-│   └── lib/               # Scraping logic
-│
-├── SETUP_GUIDE.md         # Designer-friendly guide
-├── API_SPECIFICATION.md   # Internal API spec for Engineering
-└── README.md              # This file
+└── vercel-backend/        # (Optional) Legacy scraper backend
 ```
 
-## 🔧 Development
-
-### Figma Plugin
+## 🛠️ Development
 
 ```bash
-cd figma-plugin
-npm install
-npm run build    # Build for production
-npm run watch    # Watch mode for development
+# Install dependencies
+cd figma-plugin && npm install
+
+# Build
+npm run build
+
+# Watch mode
+npm run watch
 ```
 
-### Backend (Local)
+## 📝 Available Fields
 
-```bash
-cd vercel-backend
-npm install
-npm run dev      # Start local server at :3000
-```
-
-## 📊 Data Modes Comparison
-
-| Mode | Speed | Reliability | Data Fields |
-|------|-------|-------------|-------------|
-| ⚡ Auto (Direct API) | ~2s | ⭐⭐⭐ High | All fields (times, duration, amenities) |
-| 🔄 XHR Intercept | ~15s | ⭐⭐ Medium | All fields (browser-based) |
-| 📊 DataLayer | ~15s | ⭐⭐ Medium | Limited (no times/duration) |
-| 📝 Selectors | ~15s | ⭐ Low | Custom |
-
-**Auto mode** tries the direct API first (~2 seconds) and automatically falls back to browser-based extraction if needed.
-
-## 🎯 Roadmap
-
-- [x] DataLayer extraction for bus listings
-- [x] Three-way mode selector
-- [x] One-click Vercel deployment
-- [ ] Internal API integration (waiting on Engineering)
-- [ ] Figma Community publishing
-- [ ] Chrome extension alternative
-
-## 📄 Documentation
-
-- [SETUP_GUIDE.md](SETUP_GUIDE.md) - For designers
-- [API_SPECIFICATION.md](API_SPECIFICATION.md) - For Engineering team
-- [vercel-backend/README.md](vercel-backend/README.md) - Backend deployment
-
-## 🤝 Contributing
-
-This is an internal RedBus tool. Contact the UX Tooling team for access.
+| Field | Example |
+|-------|---------|
+| `operator` | FRESHBUS |
+| `busType` | A/C Sleeper (2+1) |
+| `departureTime` | 22:30 |
+| `arrivalTime` | 05:45 |
+| `duration` | 7h 15m |
+| `price` | ₹850 |
+| `rating` | 4.5 |
+| `seatsAvailable` | 23 |
+| `route` | Bangalore to Tirupati |
+| `amenities` | WiFi, Charging Point |
 
 ## 📜 License
 
-Internal use only - RedBus © 2026
+Internal RedBus UX Team Tool
