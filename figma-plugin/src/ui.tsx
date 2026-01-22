@@ -38,7 +38,8 @@ interface DataLayerItem {
 
 // Scraper Backend URL - Update this after deploying to Vercel
 // Example: 'https://redbus-figma-scraper.vercel.app'
-// For local development, use localhost. For production, deploy to Vercel and update this URL.
+// Backend URL - use localhost (Vercel is blocked by RedBus)
+// Designers: Run `npm run dev` in vercel-backend folder first
 const SCRAPER_API_URL = 'http://localhost:3000';
 
 // Internal API URL - Will be provided by Engineering team
