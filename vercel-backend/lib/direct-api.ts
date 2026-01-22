@@ -201,6 +201,13 @@ function transformBusData(bus: any): BusResult {
     const isAc = busType.toLowerCase().includes('a/c') || busType.toLowerCase().includes('ac');
     const isSleeper = busType.toLowerCase().includes('sleeper');
 
+    // Extract price from fareList array (it's just [price1, price2, ...])
+    const fareList = bus.fareList || [];
+    const price = typeof fareList[0] === 'number' ? fareList[0] : (fareList[0]?.baseFare || fareList[0]?.fare || bus.fare || bus.baseFare || 0);
+    
+    // Rating is in totalRatings field
+    const rating = bus.totalRatings || bus.rating || bus.busRating || 0;
+
     return {
         id: String(bus.routeId || bus.serviceId || bus.id || ''),
         operator: bus.travelsName || bus.travels || bus.operatorName || '',
@@ -209,17 +216,17 @@ function transformBusData(bus: any): BusResult {
         arrivalTime: formatTime(arrTime),
         duration: durationFormatted,
         durationMinutes: durationMins,
-        price: bus.fare || bus.baseFare || 0,
-        priceFormatted: `₹${bus.fare || bus.baseFare || 0}`,
-        rating: String(bus.rating || bus.busRating || '0'),
-        totalRatings: bus.totalRatings || bus.ratingCount || 0,
+        price: price,
+        priceFormatted: `₹${price}`,
+        rating: String(rating),
+        totalRatings: bus.numberOfReviews || bus.ratingCount || 0,
         seatsAvailable: bus.availableSeats || bus.seatsAvailable || 0,
         route: bus.routeName || `${bus.source || 'Source'} to ${bus.destination || 'Destination'}`,
         boardingPoints,
         droppingPoints,
         amenities,
-        isAc,
-        isSleeper,
+        isAc: bus.isAc || isAc,
+        isSleeper: isSleeper,
         cancellationPolicy: bus.cancellationPolicy || '',
     };
 }
