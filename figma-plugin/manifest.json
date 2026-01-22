@@ -1,0 +1,16 @@
+{
+    "name": "Web Scraper Sync",
+    "id": "web-scraper-sync",
+    "api": "1.0.0",
+    "main": "dist/code.js",
+    "ui": "dist/ui.html",
+    "networkAccess": {
+        "allowedDomains": [
+            "https://localhost:3000",
+            "https://api-internal.redbus.in",
+            "*"
+        ],
+        "reasoning": "Required to communicate with internal RedBus API, scraping backend, and fetch images from any website"
+    },
+    "editorType": ["figma"]
+}

@@ -1,0 +1,35 @@
+{
+    "name": "vercel-backend",
+    "version": "1.0.0",
+    "description": "Web Scraper Sync - Vercel backend with Puppeteer",
+    "main": "index.js",
+    "type": "commonjs",
+    "scripts": {
+        "dev": "ts-node dev-server.ts",
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "web-scraper",
+        "puppeteer",
+        "vercel"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@sparticuz/chromium": "^143.0.4",
+        "puppeteer-core": "^24.36.0"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/node": "^25.0.10",
+        "@vercel/node": "^5.5.26",
+        "body-parser": "^2.2.2",
+        "cors": "^2.8.5",
+        "express": "^5.2.1",
+        "puppeteer": "^24.36.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
+    }
+}

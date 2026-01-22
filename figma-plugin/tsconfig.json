@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "lib": [
+            "es6",
+            "dom"
+        ],
+        "typeRoots": [
+            "./node_modules/@types",
+            "./node_modules/@figma"
+        ],
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "jsx": "react",
+        "strict": true
+    }
+}
