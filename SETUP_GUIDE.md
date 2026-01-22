@@ -4,35 +4,42 @@ A simple guide to get the plugin working for your design team.
 
 ---
 
-## For the Person Setting This Up (One-Time)
+## 🚀 Quick Start (For Designers)
 
-You only need to do this **once** for the whole team.
+### Step 1: Start the Server
+**Double-click** `START_SERVER.command` in the project folder.
 
-### Step 1: Deploy the Backend (5 minutes)
+Keep the terminal window open while using the plugin.
 
-1. Go to [vercel.com](https://vercel.com) and sign up (free)
-2. Click **"Add New Project"**
-3. Import the `vercel-backend` folder from GitHub
-4. Click **"Deploy"**
-5. Copy your URL (looks like `https://redbus-figma-scraper.vercel.app`)
+### Step 2: Install the Figma Plugin (One-time)
+1. Open Figma Desktop
+2. Go to **Menu → Plugins → Development → Import plugin from manifest**
+3. Select `figma-plugin/manifest.json`
 
-### Step 2: Update the Plugin (2 minutes)
+### Step 3: Use It!
+1. Right-click → **Plugins → Web Scraper Sync**
+2. Paste any RedBus search URL
+3. Click **Fetch & Apply**
 
-1. Open `figma-plugin/src/ui.tsx`
-2. Find this line near the top:
-   ```
-   const SCRAPER_API_URL = 'https://redbus-figma-scraper.vercel.app';
-   ```
-3. Replace with YOUR Vercel URL
-4. Run in terminal:
-   ```
-   cd figma-plugin
-   npm run build
-   ```
+**That's it!** 🎉
 
-### Step 3: Share with Team
+---
 
-Share the `figma-plugin` folder with your team, or publish to Figma Community.
+## First-Time Setup (One Person Does This)
+
+If you haven't cloned the repo yet:
+
+```bash
+# Clone the repository
+git clone https://github.com/ishanjalan/redbus-figma-scraper.git
+cd redbus-figma-scraper
+
+# Install backend dependencies
+cd vercel-backend
+npm install
+```
+
+Then share the folder with your team (via Google Drive, Dropbox, etc.).
 
 ---
 
@@ -115,17 +122,20 @@ Duplicate this card and change `@[0]` to `@[1]`, `@[2]`, etc.
 
 ## Troubleshooting
 
+**"Network error: Failed to fetch":**
+→ Make sure you started the server first! Double-click `START_SERVER.command`
+
 **"API not configured" message:**
 → Internal API isn't ready yet. Use DataLayer mode instead.
-
-**"Network error" message:**
-→ Check your internet connection. The scraper backend might be down.
 
 **Nothing happens when I click "Apply":**
 → Make sure your Figma layers are named correctly (`@[0]`, `@{operator}`, etc.)
 
 **Data doesn't match my frames:**
 → Check that frame indices match: `@[0]` gets the first result, `@[1]` gets second, etc.
+
+**Server window closed accidentally:**
+→ Just double-click `START_SERVER.command` again
 
 ---
 
