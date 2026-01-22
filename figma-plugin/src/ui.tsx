@@ -23,8 +23,22 @@ const API_URL = 'http://localhost:3000';
 
 // Available fields for mapping
 const AVAILABLE_FIELDS = [
-    'operator', 'busType', 'departureTime', 'arrivalTime', 'duration',
-    'price', 'rating', 'seatsAvailable', 'route', 'amenities'
+    // Core
+    'operator', 'busType', 'serviceName',
+    // Timing
+    'departureTime', 'arrivalTime', 'duration',
+    // Pricing
+    'price', 'priceFormatted', 'originalPrice', 'originalPriceFormatted', 'discount',
+    // Ratings
+    'rating', 'numberOfReviews',
+    // Seats
+    'seatsAvailable', 'totalSeats', 'singleSeats',
+    // Route
+    'route', 'viaRoute', 'boardingPoint', 'droppingPoint',
+    // Features
+    'amenities', 'tags', 'offerTag', 'specialMessage',
+    // Booleans
+    'isPrimo', 'isAc', 'isSleeper', 'isElectricVehicle', 'isLiveTracking',
 ];
 
 const App = () => {

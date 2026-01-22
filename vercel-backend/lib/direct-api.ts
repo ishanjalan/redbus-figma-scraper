@@ -27,25 +27,64 @@ export interface BusSearchParams {
 }
 
 export interface BusResult {
+    // Core identifiers
     id: string;
     operator: string;
+    operatorId: string;
+    serviceName: string;
+    
+    // Bus details
     busType: string;
+    isAc: boolean;
+    isSleeper: boolean;
+    isSeater: boolean;
+    isElectricVehicle: boolean;
+    
+    // Timing
     departureTime: string;
     arrivalTime: string;
     duration: string;
     durationMinutes: number;
+    
+    // Pricing
     price: number;
     priceFormatted: string;
+    originalPrice: number;
+    originalPriceFormatted: string;
+    discount: string;
+    
+    // Ratings & Reviews
     rating: string;
-    totalRatings: number;
+    numberOfReviews: number;
+    
+    // Seats
     seatsAvailable: number;
+    totalSeats: number;
+    singleSeats: number;
+    windowSeats: number;
+    
+    // Route info
     route: string;
+    viaRoute: string;
+    boardingPoint: string;
+    droppingPoint: string;
     boardingPoints: string[];
     droppingPoints: string[];
+    
+    // Features & Tags
     amenities: string[];
-    isAc: boolean;
-    isSleeper: boolean;
+    tags: string[];
+    isPrimo: boolean;
+    isLiveTracking: boolean;
+    hasFreeDateChange: boolean;
+    
+    // Offer/Campaign
+    offerTag: string;
+    specialMessage: string;
+    
+    // Other
     cancellationPolicy: string;
+    isSponsored: boolean;
 }
 
 export interface DirectAPIResult {
@@ -178,8 +217,8 @@ function transformBusData(bus: any): BusResult {
     const depTime = parseDateTime(bus.departureTime);
     const arrTime = parseDateTime(bus.arrivalTime);
     
-    // Calculate duration
-    const durationMins = calculateDurationMinutes(depTime, arrTime);
+    // Calculate duration (use API value if available)
+    const durationMins = bus.journeyDurationMin || calculateDurationMinutes(depTime, arrTime);
     const durationFormatted = formatDuration(durationMins);
 
     // Extract boarding/dropping points
@@ -196,38 +235,105 @@ function transformBusData(bus: any): BusResult {
     // Extract amenities
     const amenities = extractAmenities(bus.amenities || bus.ac || []);
 
-    // Determine bus features
+    // Determine bus features from busType string
     const busType = bus.busType || '';
-    const isAc = busType.toLowerCase().includes('a/c') || busType.toLowerCase().includes('ac');
-    const isSleeper = busType.toLowerCase().includes('sleeper');
+    const busTypeLower = busType.toLowerCase();
+    const isAc = bus.isAc || busTypeLower.includes('a/c') || busTypeLower.includes('ac');
+    const isSleeper = busTypeLower.includes('sleeper');
+    const isSeater = bus.isSeater || busTypeLower.includes('seater');
 
     // Extract price from fareList array (it's just [price1, price2, ...])
     const fareList = bus.fareList || [];
     const price = typeof fareList[0] === 'number' ? fareList[0] : (fareList[0]?.baseFare || fareList[0]?.fare || bus.fare || bus.baseFare || 0);
     
+    // Original price and discount calculation
+    const originalPrice = fareList[1] || fareList[0] || price; // Sometimes second element is original
+    const discountPercent = originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0;
+    
     // Rating is in totalRatings field
     const rating = bus.totalRatings || bus.rating || bus.busRating || 0;
+    
+    // Extract offer/campaign info
+    const campaign = bus.operatorOfferCampaign || {};
+    const offerTag = campaign.title || campaign.offerText || '';
+    
+    // Extract persuasion/tags
+    const persuasion = bus.persuasion || {};
+    const tags: string[] = [];
+    if (persuasion.onTime) tags.push('On Time');
+    if (persuasion.freeDateChange || bus.isFreeDateChange) tags.push('Free date change');
+    if (persuasion.freeSnacks) tags.push('Free Snacks');
+    if (bus.isLiveTrackingAvailable) tags.push('Live Tracking');
+    
+    // Check for Primo
+    const isPrimo = bus.rdBoostInfo?.isPrimo || bus.isPrimo || false;
+    
+    // Extract special messages from serviceNotes
+    const specialMessage = bus.serviceNotes || persuasion.message || '';
+
+    // Seats info
+    const singleSeats = bus.availableWindowSeats || 0;
+    const windowSeats = bus.availableWindowSeats || 0;
 
     return {
+        // Core identifiers
         id: String(bus.routeId || bus.serviceId || bus.id || ''),
         operator: bus.travelsName || bus.travels || bus.operatorName || '',
+        operatorId: String(bus.operatorId || ''),
+        serviceName: bus.serviceName || '',
+        
+        // Bus details
         busType: busType,
+        isAc: isAc,
+        isSleeper: isSleeper,
+        isSeater: isSeater,
+        isElectricVehicle: bus.isElectricVehicle || false,
+        
+        // Timing
         departureTime: formatTime(depTime),
         arrivalTime: formatTime(arrTime),
         duration: durationFormatted,
         durationMinutes: durationMins,
+        
+        // Pricing
         price: price,
-        priceFormatted: `₹${price}`,
+        priceFormatted: `₹${price.toLocaleString('en-IN')}`,
+        originalPrice: originalPrice,
+        originalPriceFormatted: originalPrice > price ? `₹${originalPrice.toLocaleString('en-IN')}` : '',
+        discount: discountPercent > 0 ? `${discountPercent}% OFF` : '',
+        
+        // Ratings & Reviews  
         rating: String(rating),
-        totalRatings: bus.numberOfReviews || bus.ratingCount || 0,
-        seatsAvailable: bus.availableSeats || bus.seatsAvailable || 0,
-        route: bus.routeName || `${bus.source || 'Source'} to ${bus.destination || 'Destination'}`,
+        numberOfReviews: bus.numberOfReviews || bus.ratingCount || 0,
+        
+        // Seats
+        seatsAvailable: bus.availableSeats || 0,
+        totalSeats: bus.totalSeats || 0,
+        singleSeats: singleSeats,
+        windowSeats: windowSeats,
+        
+        // Route info
+        route: bus.routeName || `${bus.source || ''} to ${bus.destination || ''}`.trim() || '',
+        viaRoute: bus.viaRt || '',
+        boardingPoint: bus.standardBpName || boardingPoints[0] || '',
+        droppingPoint: bus.standardDpName || droppingPoints[0] || '',
         boardingPoints,
         droppingPoints,
+        
+        // Features & Tags
         amenities,
-        isAc: bus.isAc || isAc,
-        isSleeper: isSleeper,
+        tags,
+        isPrimo: isPrimo,
+        isLiveTracking: bus.isLiveTrackingAvailable || false,
+        hasFreeDateChange: persuasion.freeDateChange || bus.isFreeDateChange || false,
+        
+        // Offer/Campaign
+        offerTag: offerTag,
+        specialMessage: specialMessage,
+        
+        // Other
         cancellationPolicy: bus.cancellationPolicy || '',
+        isSponsored: bus.isSponsored || bus.campaignType === 'sponsored' || false,
     };
 }
 
