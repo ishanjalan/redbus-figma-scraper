@@ -3,6 +3,7 @@ node_modules/
 
 # Build outputs
 figma-plugin/dist/
+desktop-app/dist/
 
 # Environment files
 .env

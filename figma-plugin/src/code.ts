@@ -110,7 +110,7 @@ function isGroupContainer(layer: ScraperLayer): boolean {
 }
 
 // Message handler
-figma.ui.onmessage = async (msg: UIToCodeMessage) => {
+figma.ui.onmessage = async (msg: any) => {
     // Handle scan-layers request
     if (msg.type === 'scan-layers') {
         const nodes = getNodesForScope(msg.scope);
@@ -118,6 +118,74 @@ figma.ui.onmessage = async (msg: UIToCodeMessage) => {
         const detectedLayers = scraperLayers.map(toDetectedLayer);
 
         postToUI({ type: 'layers-found', layers: detectedLayers });
+        return;
+    }
+
+    // Handle scan-mappings request (new: detect frame/field mappings)
+    if (msg.type === 'scan-mappings') {
+        const nodes = getNodesForScope(msg.scope);
+        const indexedFrames = findIndexedFrames(nodes);
+        
+        const mappings: Array<{
+            frameIndex: number;
+            frameName: string;
+            fields: Array<{ layerName: string; fieldName: string; sampleValue: string }>;
+        }> = [];
+        
+        for (const [index, frame] of indexedFrames) {
+            const fieldLayers = findFieldLayers(frame);
+            const fields: Array<{ layerName: string; fieldName: string; sampleValue: string }> = [];
+            
+            for (const [fieldName, layer] of fieldLayers) {
+                const textNode = layer.type === 'TEXT' ? layer : findTextInNode(layer);
+                fields.push({
+                    layerName: layer.name,
+                    fieldName,
+                    sampleValue: textNode?.characters?.slice(0, 30) || '',
+                });
+            }
+            
+            mappings.push({
+                frameIndex: index,
+                frameName: frame.name,
+                fields,
+            });
+        }
+        
+        postToUI({ type: 'mappings-detected', mappings });
+        return;
+    }
+
+    // Handle load-storage request
+    if (msg.type === 'load-storage') {
+        try {
+            const presets = await figma.clientStorage.getAsync('redbus-presets') || [];
+            const history = await figma.clientStorage.getAsync('redbus-history') || [];
+            postToUI({ type: 'storage-loaded', presets, history });
+        } catch (error) {
+            console.error('Failed to load storage:', error);
+            postToUI({ type: 'storage-loaded', presets: [], history: [] });
+        }
+        return;
+    }
+
+    // Handle save-presets request
+    if (msg.type === 'save-presets') {
+        try {
+            await figma.clientStorage.setAsync('redbus-presets', msg.presets);
+        } catch (error) {
+            console.error('Failed to save presets:', error);
+        }
+        return;
+    }
+
+    // Handle save-history request
+    if (msg.type === 'save-history') {
+        try {
+            await figma.clientStorage.setAsync('redbus-history', msg.history);
+        } catch (error) {
+            console.error('Failed to save history:', error);
+        }
         return;
     }
 

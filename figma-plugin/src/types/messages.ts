@@ -42,20 +42,51 @@ export interface DataLayerItem {
     [key: string]: any;
 }
 
+// Preset type for saving routes
+export interface Preset {
+    id: string;
+    name: string;
+    url: string;
+    maxItems: number;
+    createdAt: number;
+}
+
+// History item
+export interface HistoryItem {
+    id: string;
+    url: string;
+    routeName: string;
+    busCount: number;
+    timestamp: number;
+}
+
+// Detected mapping (for preview)
+export interface DetectedMapping {
+    frameIndex: number;
+    frameName: string;
+    fields: { layerName: string; fieldName: string; sampleValue: string }[];
+}
+
 // Messages from UI to Code
 export type UIToCodeMessage =
     | { type: 'sync'; url: string; scope: SyncScope; options: ScrapeOptions }
     | { type: 'scan-layers'; scope: SyncScope }
+    | { type: 'scan-mappings'; scope: SyncScope }
     | { type: 'apply-data'; results: ScrapeResult[] }
-    | { type: 'apply-datalayer'; items: DataLayerItem[]; scope: SyncScope };
+    | { type: 'apply-datalayer'; items: DataLayerItem[]; scope: SyncScope }
+    | { type: 'load-storage' }
+    | { type: 'save-presets'; presets: Preset[] }
+    | { type: 'save-history'; history: HistoryItem[] };
 
 // Messages from Code to UI
 export type CodeToUIMessage =
     | { type: 'layers-found'; layers: DetectedLayer[] }
+    | { type: 'mappings-detected'; mappings: DetectedMapping[] }
     | { type: 'fetch-data'; url: string; selectors: SelectorRequest[] }
     | { type: 'sync-complete'; updated: number; failed: number }
     | { type: 'error'; message: string }
-    | { type: 'progress'; current: number; total: number; message: string };
+    | { type: 'progress'; current: number; total: number; message: string }
+    | { type: 'storage-loaded'; presets: Preset[]; history: HistoryItem[] };
 
 // API Request/Response types
 export interface ScrapeAPIRequest {

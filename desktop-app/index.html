@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedBus Data Server</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ff5a5a, #ff8c42);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.offline {
+            background: #ef4444;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .server-url {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            color: #4ade80;
+            margin-bottom: 16px;
+        }
+        
+        .info {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            text-align: left;
+            width: 100%;
+            max-width: 320px;
+        }
+        
+        .instructions h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #ff5a5a, #ff8c42);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+        
+        .minimize-hint {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">🚌</div>
+    <h1>RedBus Data Server</h1>
+    <p class="subtitle">Figma Plugin Backend</p>
+    
+    <div class="status-card">
+        <div class="status-indicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">Server Running</span>
+        </div>
+        <div class="server-url" id="serverUrl">http://localhost:3000</div>
+        <p class="info">
+            Keep this app running while using the Figma plugin.
+        </p>
+    </div>
+    
+    <div class="instructions">
+        <h3>How to use</h3>
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-text">Open Figma and run the RedBus Data Sync plugin</div>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-text">Paste a RedBus search URL</div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-text">Click "Sync Now" to fetch data</div>
+        </div>
+    </div>
+    
+    <p class="minimize-hint">
+        You can minimize this window. It will keep running in the menu bar.
+    </p>
+    
+    <script>
+        // Listen for server status updates
+        if (window.electronAPI) {
+            window.electronAPI.onServerStatus((data) => {
+                const dot = document.getElementById('statusDot');
+                const text = document.getElementById('statusText');
+                const url = document.getElementById('serverUrl');
+                
+                if (data.running) {
+                    dot.classList.remove('offline');
+                    text.textContent = 'Server Running';
+                    url.textContent = `http://localhost:${data.port}`;
+                } else {
+                    dot.classList.add('offline');
+                    text.textContent = 'Server Error';
+                    url.textContent = data.error || 'Failed to start';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

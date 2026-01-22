@@ -1,0 +1,1 @@
+Note: Add a 512x512 PNG icon file at desktop-app/icon.png before building the app

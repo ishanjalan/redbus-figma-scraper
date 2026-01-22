@@ -1,68 +1,127 @@
-# 🚌 RedBus Figma Plugin
+# RedBus Figma Data Sync
 
-A Figma plugin that syncs live bus data from RedBus directly into your designs. **No server required!**
+A Figma plugin that syncs live bus data from RedBus directly into your design frames.
 
-## ✨ Features
+## Overview
 
-- **Zero Setup** - Just install the plugin and go
-- **Direct API** - Fetches data directly from RedBus (~2 seconds)
-- **Complete Data** - Gets all fields including times, duration, prices, ratings
-- **Bulk Sync** - Fill multiple bus cards at once
+This plugin allows designers to:
+- Fetch real-time bus data from any RedBus search URL
+- Auto-populate design frames with operator names, prices, times, ratings, and more
+- Batch-process multiple routes at once
+- Save frequently used routes as presets
 
-## 🚀 Quick Start
-
-1. **Install:** Figma → Plugins → Development → Import from manifest → Select `figma-plugin/manifest.json`
-2. **Use:** Paste a RedBus search URL → Click "Fetch & Apply"
-
-## 📖 Documentation
-
-See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed instructions on:
-- Setting up your Figma frames
-- Naming conventions for auto-fill
-- Troubleshooting
-
-## 🏗️ Project Structure
+## Architecture
 
 ```
-├── figma-plugin/          # The Figma plugin (all you need!)
-│   ├── manifest.json      # Plugin configuration
-│   ├── src/               # Source code
-│   │   ├── ui.tsx         # Plugin UI
-│   │   ├── code.ts        # Figma sandbox code
-│   │   └── services/      # API client
-│   └── dist/              # Built files
-│
-└── vercel-backend/        # (Optional) Legacy scraper backend
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Figma Plugin   │────▶│  Data Server    │────▶│  RedBus API     │
+│  (UI + Logic)   │     │  (Local/Desktop)│     │  (Data Source)  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-## 🛠️ Development
+## Components
+
+### 1. Figma Plugin (`/figma-plugin`)
+The design interface that runs inside Figma.
+
+### 2. Desktop App (`/desktop-app`)
+**Recommended for designers** - A standalone app that runs the server. Just double-click to start!
+
+### 3. Local Server (`/vercel-backend`)
+For developers who prefer running the server from terminal.
+
+## Quick Start
+
+### Option A: Desktop App (Recommended for Designers)
+
+1. Download and install the RedBus Data Server app
+2. Launch the app (it shows "Server Running")
+3. Open Figma and run the RedBus Data Sync plugin
+
+### Option B: Local Server (For Developers)
 
 ```bash
-# Install dependencies
-cd figma-plugin && npm install
-
-# Build
-npm run build
-
-# Watch mode
-npm run watch
+cd vercel-backend
+npm install
+npm run dev
 ```
 
-## 📝 Available Fields
+## Naming Your Figma Layers
 
-| Field | Example |
-|-------|---------|
-| `operator` | FRESHBUS |
-| `busType` | A/C Sleeper (2+1) |
-| `departureTime` | 22:30 |
-| `arrivalTime` | 05:45 |
-| `duration` | 7h 15m |
-| `price` | ₹850 |
-| `rating` | 4.5 |
-| `seatsAvailable` | 23 |
-| `route` | Bangalore to Tirupati |
-| `amenities` | WiFi, Charging Point |
+### Frame Naming
+Name your card frames with indices:
+- `Card @[0]` - First bus
+- `Card @[1]` - Second bus
+- `Card @[2]` - Third bus
 
-## 📜 License
+### Layer Naming
+Name text layers with field names:
+- `@{operator}` - Bus operator name
+- `@{priceFormatted}` - Price (₹788)
+- `@{departureTime}` - Departure time
+- `@{rating}` - Rating
 
-Internal RedBus UX Team Tool
+### Available Fields
+
+| Field | Example | Description |
+|-------|---------|-------------|
+| `operator` | FRESHBUS | Operator name |
+| `busType` | A/C Sleeper (2+1) | Bus type |
+| `departureTime` | 22:30 | Departure time |
+| `arrivalTime` | 05:45 | Arrival time |
+| `duration` | 7h 15m | Travel duration |
+| `priceFormatted` | ₹788 | Price with currency |
+| `originalPriceFormatted` | ₹831 | Original price |
+| `discount` | 5% OFF | Discount label |
+| `rating` | 4.7 | Bus rating |
+| `numberOfReviews` | 779 | Number of reviews |
+| `seatsAvailable` | 33 | Available seats |
+| `boardingPoint` | Central Silk Board | Pickup point |
+| `droppingPoint` | RTC Bus Stand | Drop point |
+| `tags` | Live Tracking | Bus tags |
+| `offerTag` | Exclusive 7.5% OFF | Offer message |
+| `isPrimo` | true | Primo status |
+| `isElectricVehicle` | true | Electric bus |
+
+## Features
+
+### ✅ Batch URLs
+Paste multiple RedBus URLs (one per line) to fetch data from multiple routes.
+
+### ✅ Presets
+Save frequently used routes for quick access.
+
+### ✅ History
+Access your last 20 fetches quickly.
+
+### ✅ Retry Logic
+Automatic retry with exponential backoff for reliability.
+
+### ✅ Data Caching
+Use cached data when offline.
+
+### ✅ Field Mapping Preview
+See which Figma layers will receive which data before applying.
+
+## Development
+
+### Building the Figma Plugin
+
+```bash
+cd figma-plugin
+npm install
+npm run build
+```
+
+### Building the Desktop App
+
+```bash
+cd desktop-app
+npm install
+npm run build:mac   # for macOS
+npm run build:win   # for Windows
+```
+
+## Team
+
+Built for the RedBus UX Design Team.
