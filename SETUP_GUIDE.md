@@ -1,17 +1,24 @@
 # 🚌 RedBus Figma Plugin - Setup Guide
 
-Sync live bus data from RedBus directly into your Figma designs. **No server needed!**
+Sync live bus data from RedBus directly into your Figma designs.
 
 ---
 
-## 🚀 Quick Start (2 Steps!)
+## 🚀 Quick Start
 
-### Step 1: Install the Plugin
+### Step 1: Start the Server
+**Double-click** `START_SERVER.command` (Mac) or run in Terminal:
+```bash
+cd vercel-backend && npm run dev
+```
+Keep this terminal open while using the plugin.
+
+### Step 2: Install the Plugin (One-time)
 1. Open Figma Desktop
 2. Go to **Menu → Plugins → Development → Import plugin from manifest**
 3. Select `figma-plugin/manifest.json`
 
-### Step 2: Use It!
+### Step 3: Use It!
 1. Right-click → **Plugins → RedBus Data Sync**
 2. Paste any RedBus search URL
 3. Click **⚡ Fetch & Apply**

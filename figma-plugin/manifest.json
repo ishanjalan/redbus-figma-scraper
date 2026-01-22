@@ -6,9 +6,9 @@
     "ui": "dist/ui.html",
     "networkAccess": {
         "allowedDomains": [
-            "https://www.redbus.in"
+            "http://localhost:3000"
         ],
-        "reasoning": "Required to fetch bus data directly from RedBus API"
+        "reasoning": "Required to communicate with local proxy server for fetching RedBus data"
     },
     "editorType": ["figma"]
 }

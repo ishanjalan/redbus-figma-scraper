@@ -1,15 +1,30 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import './ui.css';
-import { fetchBusesDirect, parseRedBusUrl, BusResult } from './services/redbus-direct';
 
 // Types
 type SyncScope = 'document' | 'page' | 'selection';
 
+interface BusResult {
+    operator: string;
+    busType: string;
+    departureTime: string;
+    arrivalTime: string;
+    duration: string;
+    price: string;
+    rating: string;
+    seatsAvailable: string;
+    route: string;
+    amenities: string;
+}
+
+// Backend URL - local proxy server (needed for CORS)
+const API_URL = 'http://localhost:3000';
+
 // Available fields for mapping
 const AVAILABLE_FIELDS = [
     'operator', 'busType', 'departureTime', 'arrivalTime', 'duration',
-    'price', 'priceFormatted', 'rating', 'seatsAvailable', 'route', 'amenities'
+    'price', 'rating', 'seatsAvailable', 'route', 'amenities'
 ];
 
 const App = () => {
@@ -20,6 +35,12 @@ const App = () => {
     const [error, setError] = React.useState<string | null>(null);
     const [status, setStatus] = React.useState<string | null>(null);
     const [busData, setBusData] = React.useState<BusResult[]>([]);
+    const [serverOnline, setServerOnline] = React.useState<boolean | null>(null);
+
+    // Check server status on mount
+    React.useEffect(() => {
+        checkServer();
+    }, []);
 
     // Listen for messages from code.ts
     React.useEffect(() => {
@@ -42,36 +63,78 @@ const App = () => {
         return () => { window.onmessage = null; };
     }, []);
 
-    // Fetch bus data directly from RedBus API
+    const checkServer = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/health`, { method: 'GET' });
+            setServerOnline(res.ok);
+        } catch {
+            setServerOnline(false);
+        }
+    };
+
+    // Fetch bus data via local proxy
     const handleFetch = async () => {
         if (!url.trim()) {
             setError('Please enter a RedBus URL');
             return;
         }
 
-        // Parse URL to get search params
-        const params = parseRedBusUrl(url.trim());
-        if (!params) {
-            setError('Invalid RedBus URL. Make sure it contains fromCityId, toCityId, and date.');
+        // Validate URL has required params
+        try {
+            const urlObj = new URL(url.trim());
+            const fromCityId = urlObj.searchParams.get('fromCityId');
+            const toCityId = urlObj.searchParams.get('toCityId');
+            const journeyDate = urlObj.searchParams.get('onward') || urlObj.searchParams.get('doj');
+
+            if (!fromCityId || !toCityId || !journeyDate) {
+                setError('Invalid RedBus URL. Make sure it contains fromCityId, toCityId, and date.');
+                return;
+            }
+        } catch {
+            setError('Invalid URL format');
             return;
         }
 
         setLoading(true);
         setError(null);
-        setStatus('⚡ Fetching data from RedBus...');
+        setStatus('⚡ Fetching data...');
 
-        const result = await fetchBusesDirect({ ...params, limit: maxItems });
+        try {
+            const response = await fetch(`${API_URL}/api/scrape`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: url.trim(),
+                    options: {
+                        extractionMode: 'direct',
+                        maxResults: maxItems,
+                    },
+                }),
+            });
 
-        if (result.success && result.items.length > 0) {
-            setBusData(result.items);
-            setStatus(`✅ Found ${result.items.length} buses in ${(result.timing / 1000).toFixed(1)}s`);
-            setLoading(false);
-        } else if (result.success && result.items.length === 0) {
-            setError('No buses found for this route. Try a different date or route.');
-            setLoading(false);
-            setStatus(null);
-        } else {
-            setError(result.error || 'Failed to fetch data');
+            const data = await response.json();
+
+            if (data.success && data.dataLayerItems && data.dataLayerItems.length > 0) {
+                setBusData(data.dataLayerItems);
+                const timing = data.timing?.total ? ` in ${(data.timing.total / 1000).toFixed(1)}s` : '';
+                setStatus(`✅ Found ${data.dataLayerItems.length} buses${timing}`);
+                setLoading(false);
+            } else if (data.success && (!data.dataLayerItems || data.dataLayerItems.length === 0)) {
+                setError('No buses found for this route. Try a different date or route.');
+                setLoading(false);
+                setStatus(null);
+            } else {
+                setError(data.errors?.join(', ') || data.error || 'Failed to fetch data');
+                setLoading(false);
+                setStatus(null);
+            }
+        } catch (err: any) {
+            if (err.message.includes('Failed to fetch')) {
+                setServerOnline(false);
+                setError('Server not running. Start it first (see instructions below).');
+            } else {
+                setError(`Error: ${err.message}`);
+            }
             setLoading(false);
             setStatus(null);
         }
@@ -87,18 +150,10 @@ const App = () => {
         setLoading(true);
         setStatus('✨ Applying data to Figma...');
 
-        // Convert to format expected by code.ts
-        const items = busData.map(bus => ({
-            ...bus,
-            price: bus.priceFormatted,
-            amenities: bus.amenities?.join(', ') || '',
-            seatsAvailable: String(bus.seatsAvailable),
-        }));
-
         parent.postMessage({ 
             pluginMessage: { 
                 type: 'apply-datalayer', 
-                items,
+                items: busData,
                 scope,
             } 
         }, '*');
@@ -111,9 +166,19 @@ const App = () => {
             return;
         }
 
-        const params = parseRedBusUrl(url.trim());
-        if (!params) {
-            setError('Invalid RedBus URL. Make sure it contains fromCityId, toCityId, and date.');
+        // Validate URL
+        try {
+            const urlObj = new URL(url.trim());
+            const fromCityId = urlObj.searchParams.get('fromCityId');
+            const toCityId = urlObj.searchParams.get('toCityId');
+            const journeyDate = urlObj.searchParams.get('onward') || urlObj.searchParams.get('doj');
+
+            if (!fromCityId || !toCityId || !journeyDate) {
+                setError('Invalid RedBus URL. Make sure it contains fromCityId, toCityId, and date.');
+                return;
+            }
+        } catch {
+            setError('Invalid URL format');
             return;
         }
 
@@ -121,32 +186,48 @@ const App = () => {
         setError(null);
         setStatus('⚡ Fetching data...');
 
-        const result = await fetchBusesDirect({ ...params, limit: maxItems });
+        try {
+            const response = await fetch(`${API_URL}/api/scrape`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: url.trim(),
+                    options: {
+                        extractionMode: 'direct',
+                        maxResults: maxItems,
+                    },
+                }),
+            });
 
-        if (result.success && result.items.length > 0) {
-            setBusData(result.items);
-            setStatus('✨ Applying to Figma...');
+            const data = await response.json();
 
-            const items = result.items.map(bus => ({
-                ...bus,
-                price: bus.priceFormatted,
-                amenities: bus.amenities?.join(', ') || '',
-                seatsAvailable: String(bus.seatsAvailable),
-            }));
+            if (data.success && data.dataLayerItems && data.dataLayerItems.length > 0) {
+                setBusData(data.dataLayerItems);
+                setStatus('✨ Applying to Figma...');
 
-            parent.postMessage({ 
-                pluginMessage: { 
-                    type: 'apply-datalayer', 
-                    items,
-                    scope,
-                } 
-            }, '*');
-        } else if (result.success && result.items.length === 0) {
-            setError('No buses found for this route.');
-            setLoading(false);
-            setStatus(null);
-        } else {
-            setError(result.error || 'Failed to fetch data');
+                parent.postMessage({ 
+                    pluginMessage: { 
+                        type: 'apply-datalayer', 
+                        items: data.dataLayerItems,
+                        scope,
+                    } 
+                }, '*');
+            } else if (data.success && (!data.dataLayerItems || data.dataLayerItems.length === 0)) {
+                setError('No buses found for this route.');
+                setLoading(false);
+                setStatus(null);
+            } else {
+                setError(data.errors?.join(', ') || data.error || 'Failed to fetch data');
+                setLoading(false);
+                setStatus(null);
+            }
+        } catch (err: any) {
+            if (err.message.includes('Failed to fetch')) {
+                setServerOnline(false);
+                setError('Server not running. Start it first (see instructions below).');
+            } else {
+                setError(`Error: ${err.message}`);
+            }
             setLoading(false);
             setStatus(null);
         }
@@ -156,8 +237,28 @@ const App = () => {
         <div className="container">
             <header className="header">
                 <h1>🚌 RedBus Data Sync</h1>
-                <span className="subtitle">No server needed!</span>
             </header>
+
+            {/* Server Status */}
+            {serverOnline === false && (
+                <div className="server-notice">
+                    <span className="notice-icon">⚠️</span>
+                    <div className="notice-content">
+                        <strong>Start the local server first</strong>
+                        <p>Open Terminal and run:</p>
+                        <code className="terminal-cmd">cd vercel-backend && npm run dev</code>
+                        <button className="retry-btn" onClick={checkServer}>
+                            Check Again
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {serverOnline === true && (
+                <div className="server-online">
+                    ✓ Server connected
+                </div>
+            )}
 
             {/* URL Input */}
             <div className="section">
@@ -226,7 +327,7 @@ const App = () => {
                                 <div className="data-fields">
                                     <span className="data-field"><strong>{bus.operator}</strong></span>
                                     <span className="data-field">{bus.departureTime} → {bus.arrivalTime} ({bus.duration})</span>
-                                    <span className="data-field">{bus.priceFormatted}</span>
+                                    <span className="data-field">{bus.price}</span>
                                 </div>
                             </div>
                         ))}
@@ -264,7 +365,7 @@ const App = () => {
                 <button
                     className="sync-btn secondary"
                     onClick={handleFetch}
-                    disabled={loading}
+                    disabled={loading || serverOnline === false}
                 >
                     {loading && busData.length === 0 ? '⏳ Fetching...' : '📥 Fetch Data'}
                 </button>
@@ -281,7 +382,7 @@ const App = () => {
             <button
                 className="sync-btn full-width"
                 onClick={handleFetchAndApply}
-                disabled={loading}
+                disabled={loading || serverOnline === false}
             >
                 {loading ? '⏳ Working...' : '⚡ Fetch & Apply'}
             </button>
