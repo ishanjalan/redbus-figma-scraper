@@ -1,6 +1,8 @@
 {
     "version": 2,
     "name": "redbus-figma-scraper",
+    "buildCommand": "",
+    "outputDirectory": "",
     "functions": {
         "api/scrape.ts": {
             "memory": 1024,
